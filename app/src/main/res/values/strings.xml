@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Asian GIS</string>
+    <string name="splash_screen_image_view_no_content">Asian GIS Splash Screen</string>
+    <string name="refresh">REFRESH</string>
+</resources>
