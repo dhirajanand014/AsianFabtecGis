@@ -186,10 +186,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.contains("add_rmu.php")) {
+                if (url.contains("user_add_location.php") || url.contains("add_om.php") | url.contains("add_ss.php") || url.contains("add_fd.php")) {
                     swipeRefreshLayout.setEnabled(false);
                 } else {
-                    swipeRefreshLayout.setEnabled(false);
+                    swipeRefreshLayout.setEnabled(true);
                 }
                 return super.shouldOverrideUrlLoading(view, url);
             }
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
                                 if (location == null) {
                                     requestNewLocationData();
                                 } else {
-                                    Toast.makeText(getBaseContext().getApplicationContext(), "location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getBaseContext().getApplicationContext(), "Current location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
                                     JavascriptInterface.setLocationForJavascriptInterface(location.getLatitude(), location.getLongitude());
                                 }
                             }
@@ -426,10 +426,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
-            if (webView.getUrl().contains("add_rmu.php")) {
+            if (webView.getUrl().contains("user_add_location.php") || webView.getUrl().contains("add_om.php") | webView.getUrl().contains("add_ss.php") || webView.getUrl().contains("add_fd.php")) {
                 swipeRefreshLayout.setEnabled(false);
             } else {
-                swipeRefreshLayout.setEnabled(false);
+                swipeRefreshLayout.setEnabled(true);
             }
             webView.goBack();
         } else {

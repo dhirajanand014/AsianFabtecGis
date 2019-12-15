@@ -27,7 +27,7 @@ import com.google.android.gms.common.util.JsonUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import aegismatrix.com.location.LocationCoords;
+import aegismatrix.com.asiangis.location.LocationCoords;
 
 /**
  * Java Interface class for handling javascript function from the website

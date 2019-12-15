@@ -33,12 +33,6 @@
             android:configChanges="orientation|screenSize"
             android:hardwareAccelerated="true"
             android:theme="@style/NoActionBar" />
-        <activity
-            android:name="aegismatrix.com.asiangis.location.LocationActivity"
-            android:hardwareAccelerated="true"
-            android:launchMode = "singleInstance">
-        </activity>
-
         <receiver android:name="aegismatrix.com.asiangis.NetworkChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
