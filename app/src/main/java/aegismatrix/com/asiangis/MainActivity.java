@@ -70,7 +70,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 public class MainActivity extends AppCompatActivity implements Observer {
     private static final int INPUT_FILE_REQUEST_CODE = 1;
     private static final int FILECHOOSER_RESULTCODE = 1;
-    private static final String URL = "https://www.amcrm.in/dev8/";
+    private static final String URL = "https://www.asianfabtec.com/gis/";
     private String downloadUrl = "";
     public static final int REQUEST_CODE = 111;
     private static final int PERMISSION_ID = 44;
@@ -271,42 +271,38 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     public void requestLocation() {
-        if (!hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            if (!isLocationEnabled()) {
-                LocationRequest locationRequest = getLocationRequest();
-                LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                        .addLocationRequest(locationRequest);
-                builder.setAlwaysShow(true);
+        LocationRequest locationRequest = getLocationRequest();
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
 
-                Task<LocationSettingsResponse> result =
-                        LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
-                result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                        try {
-                            task.getResult(ApiException.class);
-                        } catch (ApiException exception) {
-                            switch (exception.getStatusCode()) {
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    try {
-                                        ResolvableApiException resolvable = (ResolvableApiException) exception;
-                                        resolvable.startResolutionForResult(MainActivity.this, 100);
-                                    } catch (IntentSender.SendIntentException e) {
+        Task<LocationSettingsResponse> result =
+                LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                try {
+                    task.getResult(ApiException.class);
+                } catch (ApiException exception) {
+                    switch (exception.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            try {
+                                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                resolvable.startResolutionForResult(MainActivity.this, 100);
+                            } catch (IntentSender.SendIntentException e) {
 
-                                    }
-                                    break;
                             }
-                        }
+                            break;
                     }
-                });
+                }
             }
-        }
+        });
     }
 
     /**
      *
      */
-    private final CountDownLatch loginLatch = new CountDownLatch(1);
+    private CountDownLatch loginLatch;
     private LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -321,6 +317,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
      *
      */
     public void requestNewLocationData() {
+        requestLocation();
+        loginLatch = new CountDownLatch(1);
         LocationRequest locationRequest = getLocationRequest();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mFusedLocationClient.requestLocationUpdates(
