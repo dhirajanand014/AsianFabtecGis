@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,6 +56,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.CountDownLatch;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -68,7 +70,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 public class MainActivity extends AppCompatActivity implements Observer {
     private static final int INPUT_FILE_REQUEST_CODE = 1;
     private static final int FILECHOOSER_RESULTCODE = 1;
-    private static final String URL = "https://www.amcrm.in/dev7/";
+    private static final String URL = "https://www.amcrm.in/dev8/";
     private String downloadUrl = "";
     public static final int REQUEST_CODE = 111;
     private static final int PERMISSION_ID = 44;
@@ -229,6 +231,10 @@ public class MainActivity extends AppCompatActivity implements Observer {
         if (savedInstanceState == null) {
             webView.loadUrl(URL);
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         requestLocation();
     }
@@ -265,45 +271,49 @@ public class MainActivity extends AppCompatActivity implements Observer {
     }
 
     public void requestLocation() {
-        if (retrieveLocationPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            LocationRequest locationRequest = getLocationRequest();
-            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                    .addLocationRequest(locationRequest);
-            builder.setAlwaysShow(true);
+        if (!hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (!isLocationEnabled()) {
+                LocationRequest locationRequest = getLocationRequest();
+                LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                        .addLocationRequest(locationRequest);
+                builder.setAlwaysShow(true);
 
-            Task<LocationSettingsResponse> result =
-                    LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
-            result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-                @Override
-                public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                    try {
-                        task.getResult(ApiException.class);
-                    } catch (ApiException exception) {
-                        switch (exception.getStatusCode()) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                try {
-                                    ResolvableApiException resolvable = (ResolvableApiException) exception;
-                                    resolvable.startResolutionForResult(MainActivity.this, 100);
-                                } catch (IntentSender.SendIntentException e) {
+                Task<LocationSettingsResponse> result =
+                        LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
+                result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+                    @Override
+                    public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                        try {
+                            task.getResult(ApiException.class);
+                        } catch (ApiException exception) {
+                            switch (exception.getStatusCode()) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    try {
+                                        ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                        resolvable.startResolutionForResult(MainActivity.this, 100);
+                                    } catch (IntentSender.SendIntentException e) {
 
-                                }
-                                break;
+                                    }
+                                    break;
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
     /**
      *
      */
+    private final CountDownLatch loginLatch = new CountDownLatch(1);
     private LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location mLastLocation = locationResult.getLastLocation();
             Toast.makeText(getBaseContext().getApplicationContext(), "location: " + mLastLocation.getLatitude() + ", " + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
-            System.out.println(mLastLocation);
+            JavascriptInterface.setLocationForJavascriptInterface(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            loginLatch.countDown();
         }
     };
 
@@ -312,13 +322,15 @@ public class MainActivity extends AppCompatActivity implements Observer {
      */
     public void requestNewLocationData() {
         LocationRequest locationRequest = getLocationRequest();
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mFusedLocationClient.requestLocationUpdates(
                 locationRequest, mLocationCallback,
-                Looper.myLooper()
-        );
-
+                Looper.getMainLooper());
+        try {
+            loginLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private LocationRequest getLocationRequest() {

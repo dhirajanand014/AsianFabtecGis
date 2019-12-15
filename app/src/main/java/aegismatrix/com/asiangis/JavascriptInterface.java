@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StrictMode;
@@ -21,11 +22,19 @@ import java.lang.reflect.Method;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import com.google.android.gms.common.util.JsonUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import aegismatrix.com.location.LocationCoords;
+
 /**
  * Java Interface class for handling javascript function from the website
  */
 public class JavascriptInterface {
     private Context context;
+    private static LocationCoords locationCoords;
     public static String FILENAME = "";
 
     public JavascriptInterface(Context context) {
@@ -34,21 +43,53 @@ public class JavascriptInterface {
 
     @android.webkit.JavascriptInterface
     public void getBase64FromBlobData(String base64Data, String contentType) throws IOException {
-        if (context instanceof MainActivity) {
-            ((MainActivity) context).requestNewLocationData();
-        }
         convertBase64StringAndStoreIt(base64Data, contentType);
     }
 
     public static void setLocationForJavascriptInterface(double latitude, double longitude) {
-        System.out.println(latitude + " " + longitude);
+        locationCoords = new LocationCoords();
+        locationCoords.setLatitutde(latitude);
+        locationCoords.setLongitude(longitude);
+    }
+
+    private static LocationCoords getLocationCoords() {
+        if (null == locationCoords) {
+            return new LocationCoords();
+        }
+        return locationCoords;
     }
 
     @android.webkit.JavascriptInterface
-    public void fetchCurrentLocation() {
-
+    public String fetchLocation() {
+        try {
+            if (context instanceof MainActivity) {
+                return new LocationAsyncTask().execute(context).get();
+            }
+        } catch (Exception e) {
+            Toast.makeText(context, "Not able to fetch current location", Toast.LENGTH_SHORT).show();
+        }
+        return null;
     }
 
+
+    private class LocationAsyncTask extends AsyncTask<Context, Void, String> {
+
+        @Override
+        protected String doInBackground(Context... contexts) {
+            try {
+                ((MainActivity) context).requestNewLocationData();
+                return getLocationCoords().toJSON();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String inJsonObject) {
+            super.onPostExecute(inJsonObject);
+        }
+    }
 
     /**
      * Get String url from Blob file type using XHR
