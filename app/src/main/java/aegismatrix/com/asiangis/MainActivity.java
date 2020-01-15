@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -23,8 +24,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
+import android.webkit.HttpAuthHandler;
 import android.webkit.ValueCallback;
+import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -54,6 +59,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.CountDownLatch;
@@ -64,27 +70,32 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import aegismatrix.com.asiangis.helper.AsianGISHelper;
+
 /**
  * Main Activity class
  */
 public class MainActivity extends AppCompatActivity implements Observer {
     private static final int INPUT_FILE_REQUEST_CODE = 1;
     private static final int FILECHOOSER_RESULTCODE = 1;
-    private static final String URL = "https://www.asianfabtec.com/gis/";
+    private static final String URL = "https://www.amcrm.in/dev8/index.php";
     private String downloadUrl = "";
     public static final int REQUEST_CODE = 111;
     private static final int PERMISSION_ID = 44;
     private WebView webView;
     private int count;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private SharedPreferences sharedPreferences;
     private ValueCallback<Uri> mUploadMessage;
     private Uri mCapturedImageURI = null;
     private ValueCallback<Uri[]> mFilePathCallback;
     private String mCameraPhotoPath;
     private Context context = this;
     private NetworkChangeReceiver networkChangeReceiver = new NetworkChangeReceiver();
+    private AsianGISHelper asianGISHelper;
     private FusedLocationProviderClient mFusedLocationClient;
     private String ORIGINAL_URL = "";
+    private boolean FROM_UI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,21 +103,22 @@ public class MainActivity extends AppCompatActivity implements Observer {
         setContentView(R.layout.activity_main);
         webView = findViewById(R.id.asiangis);
         swipeRefreshLayout = findViewById(R.id.swipeLayout);
-
+        asianGISHelper = new AsianGISHelper();
+        sharedPreferences = this.getSharedPreferences(this.getString(R.string.asian_fabtec_user_prefs), MODE_PRIVATE);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setInitialScale(1);
         IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         ObservableObject.getInstance().reset();
         ObservableObject.getInstance().addObserver(this);
         registerReceiver(networkChangeReceiver, intentFilter);
-        webView.getSettings().setAppCachePath(this.getApplicationContext().getCacheDir().getAbsolutePath());
+        webView.getSettings().setAppCacheEnabled(false);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //loads from cache or looks up to the network.
             webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         }
         webView.getSettings().setDatabaseEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.addJavascriptInterface(new JavascriptInterface(this), "Android");
         webView.getSettings().setUseWideViewPort(true);
@@ -186,6 +198,17 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                WebBackForwardList webBackForwardList = view.copyBackForwardList();
+//                if (url.contains("user_dashboard.php") && webBackForwardList.getCurrentIndex() > 0 && asianGISHelper.isPreviousUrlLogin(webBackForwardList)) {
+//
+//                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
+//                    if (null != userDetails) {
+//                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
+//                        return false;
+//                    }
+//                    return true;
+//                }
+
                 if (url.contains("user_add_location.php") || url.contains("add_om.php") | url.contains("add_ss.php") || url.contains("add_fd.php")) {
                     swipeRefreshLayout.setEnabled(false);
                 } else {
@@ -236,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         }
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        getLastLocation();
         requestLocation();
     }
 
@@ -249,13 +273,13 @@ public class MainActivity extends AppCompatActivity implements Observer {
                         new OnCompleteListener<Location>() {
                             @Override
                             public void onComplete(@NonNull Task<Location> task) {
-                                Location location = task.getResult();
-                                if (location == null) {
+                                // Location location = task.getResult();
+                               /* if (location == null) {
                                     requestNewLocationData();
-                                } else {
-                                    Toast.makeText(getBaseContext().getApplicationContext(), "Current location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
-                                    JavascriptInterface.setLocationForJavascriptInterface(location.getLatitude(), location.getLongitude());
-                                }
+                                } else {*/
+                                Toast.makeText(getBaseContext().getApplicationContext(), "Location service enabled", Toast.LENGTH_LONG).show();
+                                //JavascriptInterface.setLocationForJavascriptInterface(location.getLatitude(), location.getLongitude());
+                                // }
                             }
                         }
                 );
@@ -287,6 +311,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
                     switch (exception.getStatusCode()) {
                         case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                             try {
+                                FROM_UI = false;
                                 ResolvableApiException resolvable = (ResolvableApiException) exception;
                                 resolvable.startResolutionForResult(MainActivity.this, 100);
                             } catch (IntentSender.SendIntentException e) {
@@ -307,7 +332,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location mLastLocation = locationResult.getLastLocation();
-            Toast.makeText(getBaseContext().getApplicationContext(), "location: " + mLastLocation.getLatitude() + ", " + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
+            if (FROM_UI)
+                Toast.makeText(getBaseContext().getApplicationContext(), "location: " + mLastLocation.getLatitude() + ", " + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
             JavascriptInterface.setLocationForJavascriptInterface(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             loginLatch.countDown();
         }
@@ -316,7 +342,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
     /**
      *
      */
-    public void requestNewLocationData() {
+    public void requestNewLocationData(boolean inVal) {
+        FROM_UI = inVal;
         requestLocation();
         loginLatch = new CountDownLatch(1);
         LocationRequest locationRequest = getLocationRequest();

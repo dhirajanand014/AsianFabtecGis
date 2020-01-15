@@ -5,11 +5,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
@@ -21,11 +23,6 @@ import java.lang.reflect.Method;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-
-import com.google.android.gms.common.util.JsonUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import aegismatrix.com.asiangis.location.LocationCoords;
 
@@ -59,6 +56,20 @@ public class JavascriptInterface {
         return locationCoords;
     }
 
+
+    @android.webkit.JavascriptInterface
+    public void chekAndSaveDetails(String inUserName, String inPassword) {
+//        if (!TextUtils.isEmpty(inUserName) && !TextUtils.isEmpty(inPassword)) {
+//            String prefName = context.getResources().getString(R.string.asian_fabtec_user_prefs);
+//            SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+//            if (!sharedPreferences.contains(inUserName) || !sharedPreferences.getString(inUserName, "").equals(inPassword)) {
+//                SharedPreferences.Editor sharedPreferencesEdit = sharedPreferences.edit();
+//                sharedPreferencesEdit.putString(inUserName, inPassword);
+//                sharedPreferencesEdit.apply();
+//            }
+//        }
+    }
+
     @android.webkit.JavascriptInterface
     public String fetchLocation() {
         try {
@@ -77,7 +88,7 @@ public class JavascriptInterface {
         @Override
         protected String doInBackground(Context... contexts) {
             try {
-                ((MainActivity) context).requestNewLocationData();
+                ((MainActivity) context).requestNewLocationData(true);
                 return getLocationCoords().toJSON();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -163,7 +174,7 @@ public class JavascriptInterface {
                     builder.setContentIntent(contentIntent);
                 }
                 notificationManager.notify(notificationId, builder.build());
-                //Toast.makeText(context, "File : " + getFileName(FILENAME) + "." + MimeTypeMap.getSingleton().getExtensionFromMimeType(contentType) + " is downloading", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "File : " + getFileName(FILENAME) + "." + MimeTypeMap.getSingleton().getExtensionFromMimeType(contentType) + " is downloading", Toast.LENGTH_SHORT).show();
                 JavascriptInterface.FILENAME = "";
             }
         }
