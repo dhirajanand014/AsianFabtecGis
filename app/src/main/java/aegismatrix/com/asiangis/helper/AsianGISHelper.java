@@ -5,9 +5,7 @@ import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.webkit.WebBackForwardList;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @TargetApi(value = 24)
 public class AsianGISHelper {
@@ -20,10 +18,5 @@ public class AsianGISHelper {
             }
         }
         return null;
-    }
-
-    public boolean isPreviousUrlLogin(WebBackForwardList inWebBackForwardList) {
-        String previousUrl = inWebBackForwardList.getItemAtIndex(inWebBackForwardList.getCurrentIndex() - 1).getUrl();
-        return !TextUtils.isEmpty(previousUrl) && previousUrl.contains("login.php");
     }
 }

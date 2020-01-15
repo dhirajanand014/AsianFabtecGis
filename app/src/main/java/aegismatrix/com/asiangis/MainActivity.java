@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //loads from cache or looks up to the network.
-            webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+            webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         }
         webView.getSettings().setDatabaseEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
@@ -198,17 +198,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//                WebBackForwardList webBackForwardList = view.copyBackForwardList();
-//                if (url.contains("user_dashboard.php") && webBackForwardList.getCurrentIndex() > 0 && asianGISHelper.isPreviousUrlLogin(webBackForwardList)) {
-//
-//                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
-//                    if (null != userDetails) {
-//                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
-//                        return false;
-//                    }
-//                    return true;
-//                }
-
                 if (url.contains("user_add_location.php") || url.contains("add_om.php") | url.contains("add_ss.php") || url.contains("add_fd.php")) {
                     swipeRefreshLayout.setEnabled(false);
                 } else {
@@ -219,6 +208,12 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public void onPageFinished(WebView view, String url) {
+//                if ((url.contains("login.php") || url.contains("index.php"))) {
+//                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
+//                    if (null != userDetails) {
+//                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
+//                    }
+//                }
                 super.onPageFinished(view, url);
                 swipeRefreshLayout.setRefreshing(false);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
