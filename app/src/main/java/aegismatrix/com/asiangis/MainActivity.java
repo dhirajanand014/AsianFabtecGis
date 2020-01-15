@@ -208,12 +208,12 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public void onPageFinished(WebView view, String url) {
-//                if ((url.contains("login.php") || url.contains("index.php"))) {
-//                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
-//                    if (null != userDetails) {
-//                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
-//                    }
-//                }
+                if ((url.contains("login.php") || url.contains("index.php"))) {
+                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
+                    if (null != userDetails) {
+                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
+                    }
+                }
                 super.onPageFinished(view, url);
                 swipeRefreshLayout.setRefreshing(false);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

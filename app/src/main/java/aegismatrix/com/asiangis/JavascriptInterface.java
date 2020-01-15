@@ -59,15 +59,15 @@ public class JavascriptInterface {
 
     @android.webkit.JavascriptInterface
     public void chekAndSaveDetails(String inUserName, String inPassword) {
-//        if (!TextUtils.isEmpty(inUserName) && !TextUtils.isEmpty(inPassword)) {
-//            String prefName = context.getResources().getString(R.string.asian_fabtec_user_prefs);
-//            SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
-//            if (!sharedPreferences.contains(inUserName) || !sharedPreferences.getString(inUserName, "").equals(inPassword)) {
-//                SharedPreferences.Editor sharedPreferencesEdit = sharedPreferences.edit();
-//                sharedPreferencesEdit.putString(inUserName, inPassword);
-//                sharedPreferencesEdit.apply();
-//            }
-//        }
+        if (!TextUtils.isEmpty(inUserName) && !TextUtils.isEmpty(inPassword)) {
+            String prefName = context.getResources().getString(R.string.asian_fabtec_user_prefs);
+            SharedPreferences sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+            if (!sharedPreferences.contains(inUserName) || !sharedPreferences.getString(inUserName, "").equals(inPassword)) {
+                SharedPreferences.Editor sharedPreferencesEdit = sharedPreferences.edit();
+                sharedPreferencesEdit.putString(inUserName, inPassword);
+                sharedPreferencesEdit.apply();
+            }
+        }
     }
 
     @android.webkit.JavascriptInterface
