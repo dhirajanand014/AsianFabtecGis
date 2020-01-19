@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.contains("user_add_location.php") || url.contains("add_om.php") | url.contains("add_ss.php") || url.contains("add_fd.php")) {
+                if (asianGISHelper.isUrlToUnload(url)) {
                     swipeRefreshLayout.setEnabled(false);
                 } else {
                     swipeRefreshLayout.setEnabled(true);
@@ -208,12 +208,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                if ((url.contains("login.php") || url.contains("index.php"))) {
-                    Map.Entry<String, ?> userDetails = asianGISHelper.getUserDetails(sharedPreferences);
-                    if (null != userDetails) {
-                        webView.loadUrl("https://www.asianfabtec.com/gis/user_dashboard.php");
-                    }
-                }
                 super.onPageFinished(view, url);
                 swipeRefreshLayout.setRefreshing(false);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -448,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
-            if (webView.getUrl().contains("user_add_location.php") || webView.getUrl().contains("add_om.php") | webView.getUrl().contains("add_ss.php") || webView.getUrl().contains("add_fd.php")) {
+            if (asianGISHelper.isUrlToUnload(webView.getUrl())) {
                 swipeRefreshLayout.setEnabled(false);
             } else {
                 swipeRefreshLayout.setEnabled(true);
