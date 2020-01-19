@@ -78,7 +78,7 @@ import aegismatrix.com.asiangis.helper.AsianGISHelper;
 public class MainActivity extends AppCompatActivity implements Observer {
     private static final int INPUT_FILE_REQUEST_CODE = 1;
     private static final int FILECHOOSER_RESULTCODE = 1;
-    private static final String URL = "https://www.amcrm.in/dev8/index.php";
+    private static final String URL = "https://www.asianfabtec.com/gis/";
     private String downloadUrl = "";
     public static final int REQUEST_CODE = 111;
     private static final int PERMISSION_ID = 44;
