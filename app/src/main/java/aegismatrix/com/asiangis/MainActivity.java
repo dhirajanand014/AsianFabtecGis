@@ -6,13 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,18 +23,15 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
-import android.webkit.HttpAuthHandler;
 import android.webkit.ValueCallback;
-import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,18 +55,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.CountDownLatch;
 
+import aegismatrix.com.asiangis.helper.AsianGISHelper;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import aegismatrix.com.asiangis.helper.AsianGISHelper;
 
 /**
  * Main Activity class
@@ -85,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private WebView webView;
     private int count;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private SharedPreferences sharedPreferences;
     private ValueCallback<Uri> mUploadMessage;
     private Uri mCapturedImageURI = null;
     private ValueCallback<Uri[]> mFilePathCallback;
@@ -104,7 +97,6 @@ public class MainActivity extends AppCompatActivity implements Observer {
         webView = findViewById(R.id.asiangis);
         swipeRefreshLayout = findViewById(R.id.swipeLayout);
         asianGISHelper = new AsianGISHelper();
-        sharedPreferences = this.getSharedPreferences(this.getString(R.string.asian_fabtec_user_prefs), MODE_PRIVATE);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setInitialScale(1);
         IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -207,6 +199,16 @@ public class MainActivity extends AppCompatActivity implements Observer {
             }
 
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                ProgressBar progressBar = findViewById(R.id.progressBarWebView);
+                if (View.VISIBLE == progressBar.getVisibility()) {
+                    progressBar.setVisibility(View.GONE);
+                    view.setAlpha(1);
+                }
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 swipeRefreshLayout.setRefreshing(false);
@@ -216,6 +218,9 @@ public class MainActivity extends AppCompatActivity implements Observer {
                             "                                       if(printButton.length > 0 && csvButton.length > 0){" +
                             "                                            printButton[0].style.display = csvButton[0].style.display = 'none';" +
                             "                                       }", null);
+                    if (URL.equals(url)) {
+                        asianGISHelper.autoLoginIntoGIS(view.getContext(), view);
+                    }
                 }
             }
 
